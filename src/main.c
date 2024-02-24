@@ -9,7 +9,7 @@ static int width  = 1000;
 static int height = 1000;
 static int fontsize = 30;
 
-static char player_name[10];
+static char player_name[10] = "YOUFISH";
 
 typedef enum {
     START,
