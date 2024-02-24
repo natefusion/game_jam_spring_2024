@@ -3,13 +3,9 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-#define str(x) #x
-
 static int width  = 1000;
 static int height = 1000;
 static int fontsize = 30;
-
-static char player_name[10] = "YOUFISH";
 
 typedef enum {
     START,
@@ -21,8 +17,8 @@ typedef enum {
     MERMAID = 0,
     ONEFISH = 1,
     REDFISH = 2,
-    BLUEFISH = 3,
-    PLAYERFISH = 4
+    BLUFISH = 3,
+    YOUFISH = 4
 } Character;
 
 char * characters_tostring(Character x) {
@@ -30,8 +26,8 @@ char * characters_tostring(Character x) {
     case MERMAID: return "MERMAID";
     case ONEFISH: return "ONEFISH";
     case REDFISH: return "REDFISH";
-    case BLUEFISH: return "BLUEFISH";
-    case PLAYERFISH: return player_name;
+    case BLUFISH: return "BLUFISH";
+    case YOUFISH: return "YOUFISH";
     default: return "";
     }
 }
@@ -46,6 +42,28 @@ static Character_Dialog dialog[] = {
     {ONEFISH, "Welcome to HOOKED ON YOU"},
     {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ..."},
     {ONEFISH, "MAGGIE MERMAID!!!"},
+    {MERMAID, "Thank you so much ONEFISH. I'm flattered to have the opportunity to catch the fish of my dreams."},
+    {ONEFISH, "MAGGIE MERMAID, you won't be disappointed. We have three wonderful contestants here today."},
+    {ONEFISH, "Now, without furthur ado, let's welcome to the state our first contestant:"},
+    {ONEFISH, "REDFISH!!!"},
+    {REDFISH, "blub blub"},
+    {MERMAID, "Oh my, your red color makes my mouth water!"},
+    {ONEFISH, "Now, let's welcome our second contestant:"},
+    {ONEFISH, "BLUFISH!!!"},
+    {BLUFISH, "blub, blub MAGGIE MERMAID blub blub "},
+    {MERMAID, "Oh my, you sure know how to flatter, BLUFISH!"},
+    {ONEFISH, "And finally, our third contestant:"},
+    {ONEFISH, "Erm, sorry, what was your name again?"},
+    {ONEFISH, "Oh, yes of course, how could I forget. Welcome to the stage:"},
+    {ONEFISH, "YOUFISH!!!"},
+    {YOUFISH, "..."},
+    {MERMAID, "There's no need to be nervous YOUFISH. That orange color of your just might get me hooked!"},
+    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure three trials!"},
+    {ONEFISH, "The fish to collect the most points wins!"},
+    {ONEFISH, "The first trial is a test of STRENGTH. Show MAGGIE MERMAID your muscles in a game of TUG OF WAR"},
+    {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!"},
+    {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!"},
+    {ONEFISH, "Let the games begin and may the best fish win!"},
 };
 
 static int dialog_counter = 0;
@@ -71,14 +89,14 @@ void DrawHeadShot(Texture2D texture) {
     DrawRectangle(width - w - 20, height - h - 160, w + 20, 10, WHITE);
 }
 
-bool DrawTextBox(Character_Dialog dialog[], int dialog_counter, Font font) {
+bool DrawTextBox(char *text, Font font) {
     int box_width = width;
     int box_height = 250;
     const char *contin = "Continue";
     float contin_width = MeasureTextEx(font, contin, fontsize, 0).x;
 
     DrawRectangle(0, height - box_height, box_width, box_height, BLACK);
-    GuiLabel((Rectangle) { .x = 0, .y = height - box_height -100, .width = box_width, .height = box_height}, dialog[dialog_counter].text);
+    GuiLabel((Rectangle) { .x = 0, .y = height - box_height -100, .width = box_width, .height = box_height}, text);
 
     DrawTextEx(font, contin, (Vector2){ width - contin_width, height - 60 + 10 }, fontsize, 0, RAYWHITE);
 
@@ -128,24 +146,24 @@ int main(void) {
     UnloadImage(seasoning);
 
     Image onefish = LoadImage("./resources/onefish.png");
-    Image playerfish = LoadImage("./resources/playerfish.png");
+    Image youfish = LoadImage("./resources/youfish.png");
     Image redfish = LoadImage("./resources/redfish.png");
-    Image bluefish = LoadImage("./resources/bluefish.png");
+    Image blufish = LoadImage("./resources/blufish.png");
     Image mermaid = LoadImage("./resources/mermaid.png");
 
     Texture2D character_pngs[] = {
         [MERMAID] = LoadTextureFromImage(mermaid),
         [ONEFISH] = LoadTextureFromImage(onefish),
         [REDFISH] = LoadTextureFromImage(redfish),
-        [BLUEFISH] = LoadTextureFromImage(bluefish),
-        [PLAYERFISH] = LoadTextureFromImage(playerfish),
+        [BLUFISH] = LoadTextureFromImage(blufish),
+        [YOUFISH] = LoadTextureFromImage(youfish),
     };
     
     UnloadImage(mermaid);
     UnloadImage(onefish);
     UnloadImage(redfish);
-    UnloadImage(bluefish);
-    UnloadImage(playerfish);
+    UnloadImage(blufish);
+    UnloadImage(youfish);
     
     Image coals = LoadImage("./resources/coals.png");
     Texture2D coals_texture = LoadTextureFromImage(coals);
@@ -222,7 +240,7 @@ int main(void) {
         case SEASONING: {
             DrawTextureTiled(seasoning_texture);
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, RAYWHITE);
-            DrawTexture(character_pngs[PLAYERFISH], x, y, WHITE);
+            DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
             DrawTextEx(font, TextFormat("Score: %f", score), (Vector2){ 0, 0 }, fontsize, 0, RAYWHITE);
         } break;
         case COALS: {
@@ -231,19 +249,16 @@ int main(void) {
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height, WHITE);
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height*2, WHITE);
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, GREEN);
-            DrawTexture(character_pngs[PLAYERFISH], x, y, WHITE);
+            DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
             DrawTextEx(font, TextFormat("Score: %f", score), (Vector2){ 0, 0 }, fontsize, 0, BLACK);
         } break;
         }
         
         DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
         DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
-        if (DrawTextBox(dialog, dialog_counter, font))
+        if (DrawTextBox(dialog[dialog_counter].text, font))
             dialog_counter++;
         EndDrawing();
-
-        
-
     }
 
     CloseWindow();
