@@ -37,14 +37,15 @@ char * characters_tostring(Character x) {
 }
 
 typedef struct {
-    char *text;
     Character speaker;
+    char *text;
 } Character_Dialog;
 
 static Character_Dialog dialog[] = {
-    {"Ladies and gentlefish ...", ONEFISH},
-    {"Welcome to HOOKED ON YOU", ONEFISH},
-    {"I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ...", ONEFISH},
+    {ONEFISH, "Ladies and gentlefish ..."},
+    {ONEFISH, "Welcome to HOOKED ON YOU"},
+    {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ..."},
+    {ONEFISH, "MAGGIE MERMAID!!!"},
 };
 
 static int dialog_counter = 0;
