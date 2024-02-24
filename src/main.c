@@ -32,46 +32,58 @@ char * characters_tostring(Character x) {
     }
 }
 
+
+
+
+static bool draw_redfish = false;
+static bool draw_blufish = false;
+static bool draw_youfish = false;
+
+void enter_redfish(void) { draw_redfish = true; }
+void enter_blufish(void) { draw_blufish = true; }
+void enter_youfish(void) { draw_youfish = true; }
+
 typedef struct {
     Character speaker;
     char *text;
+    void (*trigger_action)(void);
 } Character_Dialog;
 
 #define DIALOG_LINES 32
 
 static Character_Dialog dialog[DIALOG_LINES] = {
-    {ONEFISH, "Ladies and gentlefish ..."},
-    {ONEFISH, "Welcome to HOOKED ON YOU"},
-    {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ..."},
-    {ONEFISH, "MAGGIE MERMAID!!!"},
-    {MERMAID, "Thank you so much ONEFISH. I'm flattered to have the opportunity to catch the fish of my dreams."},
-    {ONEFISH, "MAGGIE MERMAID, you won't be disappointed. We have three wonderful contestants here today."},
-    {ONEFISH, "Now, without furthur ado, let's welcome to the state our first contestant:"},
-    {ONEFISH, "REDFISH!!!"},
-    {REDFISH, "blub blub"},
-    {MERMAID, "Oh my, your red color makes my mouth water!"},
-    {ONEFISH, "Now, let's welcome our second contestant:"},
-    {ONEFISH, "BLUFISH!!!"},
-    {BLUFISH, "blub, blub MAGGIE MERMAID blub blub "},
-    {MERMAID, "Oh my, you sure know how to flatter, BLUFISH!"},
-    {ONEFISH, "And finally, our third contestant:"},
-    {ONEFISH, "Erm, sorry, what was your name again?"},
-    {ONEFISH, "Oh, yes of course, how could I forget. Welcome to the stage:"},
-    {ONEFISH, "YOUFISH!!!"},
-    {YOUFISH, "..."},
-    {MERMAID, "There's no need to be nervous YOUFISH. That orange color of your just might get me hooked!"},
-    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure three trials!"},
-    {ONEFISH, "The fish to collect the most points wins!"},
-    {ONEFISH, "The first trial is a test of STRENGTH. Show MAGGIE MERMAID your muscles in a game of TUG OF WAR"},
-    {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!"},
-    {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!"},
-    {ONEFISH, "Let the games begin and may the best fish win!"},
-    {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!"},
-    {ONEFISH, "Without furthur ado, the winner is ..."},
-    {REDFISH, "Wow, I'm so excited. Being hooked has always been my dream!"},
-    {BLUFISH, "This is unbelievable. I can't wait to finally be hooked!"},
-    {YOUFISH, "..."},
-    {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?"},
+    {ONEFISH, "Ladies and gentlefish ...", NULL},
+    {ONEFISH, "Welcome to HOOKED ON YOU", NULL},
+    {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ...", NULL},
+    {ONEFISH, "MAGGIE MERMAID!!!", NULL},
+    {MERMAID, "Thank you so much ONEFISH. I'm flattered to have the opportunity to catch the fish of my dreams.", NULL},
+    {ONEFISH, "MAGGIE MERMAID, you won't be disappointed. We have three wonderful contestants here today.", NULL},
+    {ONEFISH, "Now, without furthur ado, let's welcome our first contestant:", NULL},
+    {ONEFISH, "REDFISH!!!", enter_redfish},
+    {REDFISH, "blub blub", NULL},
+    {MERMAID, "Oh my, your red color makes my mouth water!", NULL},
+    {ONEFISH, "Now, let's welcome our second contestant:", NULL},
+    {ONEFISH, "BLUFISH!!!", enter_blufish},
+    {BLUFISH, "blub, blub MAGGIE MERMAID blub blub ", NULL},
+    {MERMAID, "Oh my, you sure know how to flatter, BLUFISH!", NULL},
+    {ONEFISH, "And finally, our third contestant:", NULL},
+    {ONEFISH, "Erm, sorry, what was your name again?", NULL},
+    {ONEFISH, "Oh, yes of course, how could I forget. Welcome:", NULL},
+    {ONEFISH, "YOUFISH!!!", enter_youfish},
+    {YOUFISH, "...", NULL},
+    {MERMAID, "There's no need to be nervous YOUFISH. That orange color of your just might get me hooked!", NULL},
+    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure three trials!", NULL},
+    {ONEFISH, "The fish to collect the most points wins!", NULL},
+    {ONEFISH, "The first trial is a test of STRENGTH. Show MAGGIE MERMAID your muscles in a game of TUG OF WAR", NULL},
+    {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", NULL},
+    {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", NULL},
+    {ONEFISH, "Let the games begin and may the best fish win!", NULL},
+    {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
+    {ONEFISH, "Without furthur ado, the winner is ...", NULL},
+    {REDFISH, "Wow, I'm so excited. Being hooked has always been my dream!", NULL},
+    {BLUFISH, "This is unbelievable. I can't wait to finally be hooked!", NULL},
+    {YOUFISH, "...", NULL},
+    {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
 };
 
 static int dialog_counter = 0;
@@ -177,7 +189,7 @@ int main(void) {
     Texture2D coals_texture = LoadTextureFromImage(coals);
     UnloadImage(coals);
 
-    Image seafloor = LoadImage("./resources/background1.png");
+    Image seafloor = LoadImage("./resources/background0.png");
     Texture2D seafloor_texture = LoadTextureFromImage(seafloor);
     UnloadImage(seafloor);
     
@@ -244,6 +256,18 @@ int main(void) {
         switch (which) {
         case START: {
             DrawTexture(seafloor_texture, 0, 0, WHITE);
+
+            if (draw_redfish) {
+                DrawTexture(character_pngs[REDFISH], 549, 403, WHITE);
+            }
+
+            if (draw_blufish) {
+                DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE);
+            }
+
+            if (draw_youfish) {
+                DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE);
+            }
         } break;
         case SEASONING: {
             DrawTextureTiled(seasoning_texture);
@@ -264,8 +288,11 @@ int main(void) {
         
         DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
         DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
+        if (dialog[dialog_counter].trigger_action) {
+            dialog[dialog_counter].trigger_action();
+        }
         if (DrawTextBox(dialog[dialog_counter].text, font))
-            if (dialog_counter < DIALOG_LINES) dialog_counter++;
+            if (dialog_counter < DIALOG_LINES - 1) dialog_counter++;
         EndDrawing();
     }
 
