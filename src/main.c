@@ -37,7 +37,7 @@ typedef struct {
     char *text;
 } Character_Dialog;
 
-#define DIALOG_LINES 26
+#define DIALOG_LINES 32
 
 static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ..."},
@@ -71,7 +71,7 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {REDFISH, "Wow, I'm so excited. Being hooked has always been my dream!"},
     {BLUFISH, "This is unbelievable. I can't wait to finally be hooked!"},
     {YOUFISH, "..."},
-    {ONFISH, "MAGGIE MERMAID, are you satisfied with your catch?"},
+    {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?"},
 };
 
 static int dialog_counter = 0;
