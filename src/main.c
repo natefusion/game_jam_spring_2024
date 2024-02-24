@@ -3,9 +3,13 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
+#define str(x) #x
+
 static int width  = 1000;
 static int height = 1000;
 static int fontsize = 30;
+
+static char player_name[10];
 
 typedef enum {
     START,
@@ -13,10 +17,33 @@ typedef enum {
     COALS,
 } Screen;
 
+typedef enum {
+    MERMAID = 0,
+    ONEFISH = 1,
+    REDFISH = 2,
+    BLUEFISH = 3,
+    PLAYERFISH = 4
+} Characters;
+
+char * characters_tostring(Characters x) {
+    switch (x) {
+    case MERMAID: return "MERMAID";
+    case ONEFISH: return "ONEFISH";
+    case REDFISH: return "REDFISH";
+    case BLUEFISH: return "BLUEFISH";
+    case PLAYERFISH: return player_name;
+    default: return "";
+    }
+}
+
 static char *dialog[] = {
     "Welcome Ladies and Gentlemen to the MERMAID game show!!! This is another line that I need to fill to test some things. This is a third line, I wonder what will happen?",
     "TWO",
     "THREE",
+};
+
+static Characters dialog_speaker[] = {
+    ONEFISH,
 };
 
 int dialog_counter = 0;
@@ -27,20 +54,33 @@ float magnitude(float x) {
     return 0.0f;
 }
 
-void DrawTextBox(char *dialog[], int *dialog_counter, Font font) {
+void DrawPlayerName(Font font, char *text) {
+    DrawRectangle(0, height - 250 - fontsize, 5 + MeasureTextEx(font, text, fontsize, 0).x, fontsize, BLACK);
+    DrawTextEx(font, text, (Vector2){ 0, height - 250 - fontsize}, fontsize, 0, WHITE);
+}
+
+void DrawHeadShot(Texture2D texture) {
+    int w = 100;
+    int h = 100;
+
+    DrawRectangle(width - w - 20, height - h - 250 - 20, w + 20, h + 20 - 10, WHITE);
+    DrawRectangle(width - w - 10, height - h - 250 - 10, w, h, BLACK);
+    DrawTexture(texture, width - w, height - h - 250, WHITE);
+    DrawRectangle(width - w - 20, height - h - 160, w + 20, 10, WHITE);
+}
+
+bool DrawTextBox(char *dialog[], int dialog_counter, Font font) {
     int box_width = width;
-    int box_height = 200;
+    int box_height = 250;
     const char *contin = "Continue";
     float contin_width = MeasureTextEx(font, contin, fontsize, 0).x;
 
-    DrawRectangle(0, height - 200, box_width, 200, BLACK);
-    GuiLabel((Rectangle) { .x = 0, .y = height - 280, .width = box_width, .height = box_height }, dialog[*dialog_counter]);
+    DrawRectangle(0, height - box_height, box_width, box_height, BLACK);
+    GuiLabel((Rectangle) { .x = 0, .y = height - box_height -100, .width = box_width, .height = box_height}, dialog[dialog_counter]);
 
     DrawTextEx(font, contin, (Vector2){ width - contin_width, height - 60 + 10 }, fontsize, 0, RAYWHITE);
 
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        (*dialog_counter)++;
-    }
+    return IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
 void DrawTextureTiled(Texture2D texture) {
@@ -75,7 +115,7 @@ int main(void) {
     int x = 0;
     int y = 0;
 
-    Screen which = SEASONING;
+    Screen which = START;
 
     double score = 0;
     bool coals_timer_start = false;
@@ -85,14 +125,33 @@ int main(void) {
     Texture2D seasoning_texture = LoadTextureFromImage(seasoning);
     UnloadImage(seasoning);
 
-    Image fish = LoadImage("./resources/fish.png");
-    ImageRotateCCW(&fish);
-    Texture2D fish_texture = LoadTextureFromImage(fish);
-    UnloadImage(fish);
+    Image onefish = LoadImage("./resources/onefish.png");
+    Image playerfish = LoadImage("./resources/playerfish.png");
+    Image redfish = LoadImage("./resources/redfish.png");
+    Image bluefish = LoadImage("./resources/bluefish.png");
+    Image mermaid = LoadImage("./resources/mermaid.png");
 
+    Texture2D character_pngs[] = {
+        [MERMAID] = LoadTextureFromImage(mermaid),
+        [ONEFISH] = LoadTextureFromImage(onefish),
+        [REDFISH] = LoadTextureFromImage(redfish),
+        [BLUEFISH] = LoadTextureFromImage(bluefish),
+        [PLAYERFISH] = LoadTextureFromImage(playerfish),
+    };
+    
+    UnloadImage(mermaid);
+    UnloadImage(onefish);
+    UnloadImage(redfish);
+    UnloadImage(bluefish);
+    UnloadImage(playerfish);
+    
     Image coals = LoadImage("./resources/coals.png");
     Texture2D coals_texture = LoadTextureFromImage(coals);
     UnloadImage(coals);
+
+    Image seafloor = LoadImage("./resources/background1.png");
+    Texture2D seafloor_texture = LoadTextureFromImage(seafloor);
+    UnloadImage(seafloor);
     
     while (!WindowShouldClose()) {
         switch (which) {
@@ -156,12 +215,12 @@ int main(void) {
         BeginDrawing();
         switch (which) {
         case START: {
-            ClearBackground(RAYWHITE);
+            DrawTexture(seafloor_texture, 0, 0, WHITE);
         } break;
         case SEASONING: {
             DrawTextureTiled(seasoning_texture);
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, RAYWHITE);
-            DrawTexture(fish_texture, x, y, WHITE);
+            DrawTexture(character_pngs[PLAYERFISH], x, y, WHITE);
             DrawTextEx(font, TextFormat("Score: %f", score), (Vector2){ 0, 0 }, fontsize, 0, RAYWHITE);
         } break;
         case COALS: {
@@ -170,12 +229,15 @@ int main(void) {
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height, WHITE);
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height*2, WHITE);
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, GREEN);
-            DrawTexture(fish_texture, x, y, WHITE);
+            DrawTexture(character_pngs[PLAYERFISH], x, y, WHITE);
             DrawTextEx(font, TextFormat("Score: %f", score), (Vector2){ 0, 0 }, fontsize, 0, BLACK);
         } break;
         }
-
-        DrawTextBox(dialog, &dialog_counter, font);
+        
+        DrawHeadShot(character_pngs[dialog_speaker[dialog_counter]]);
+        DrawPlayerName(font, characters_tostring(dialog_speaker[dialog_counter]));
+        if (DrawTextBox(dialog, dialog_counter, font))
+            dialog_counter++;
         EndDrawing();
 
         
