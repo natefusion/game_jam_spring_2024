@@ -126,14 +126,16 @@ void bouncy(void) {
 bool DrawTextBox(char const *text, Font font) {
     DrawRectangle(20, height - 200, width - 40, 180, BLACK);
     DrawTextEx(font, text, (Vector2){ 20, height - 200 }, 30, 0, RAYWHITE);
+    const char *contin = "Continue";
+    float contin_width = MeasureTextEx(font, contin, 30, 0).x;
     
     if (animate) {
         DrawRectangle(20 + timer*3, height - 200, width - 40 - timer*3, 30, BLACK);
     } else {
-        DrawTextEx(font, "Continue", (Vector2){ 20, height - 200 + 30 }, 30, 0, RAYWHITE);
+        DrawTextEx(font, contin, (Vector2){ width - contin_width - 20, height - 60 + 10 }, 30, 0, RAYWHITE);
     }
     
-    if (timer >= MeasureTextEx(font, text, 30, 0).x) {
+    if (timer * 3 >= MeasureTextEx(font, text, 30, 0).x) {
         timer = 0;
         animate = false;
     }
@@ -153,7 +155,7 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
         if (DrawTextBox(dialog[dialog_counter], font)) {
-            if (dialog_counter < 4) {
+            if (dialog_counter < 3) {
                 dialog_counter++;
                 timer = 0;
                 animate = true;
