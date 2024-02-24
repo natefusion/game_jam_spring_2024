@@ -23,9 +23,9 @@ typedef enum {
     REDFISH = 2,
     BLUEFISH = 3,
     PLAYERFISH = 4
-} Characters;
+} Character;
 
-char * characters_tostring(Characters x) {
+char * characters_tostring(Character x) {
     switch (x) {
     case MERMAID: return "MERMAID";
     case ONEFISH: return "ONEFISH";
@@ -36,17 +36,18 @@ char * characters_tostring(Characters x) {
     }
 }
 
-static char *dialog[] = {
-    "Welcome Ladies and Gentlemen to the MERMAID game show!!! This is another line that I need to fill to test some things. This is a third line, I wonder what will happen?",
-    "TWO",
-    "THREE",
+typedef struct {
+    char *text;
+    Character speaker;
+} Character_Dialog;
+
+static Character_Dialog dialog[] = {
+    {"Ladies and gentlefish ...", ONEFISH},
+    {"Welcome to HOOKED ON YOU", ONEFISH},
+    {"I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ...", ONEFISH},
 };
 
-static Characters dialog_speaker[] = {
-    ONEFISH,
-};
-
-int dialog_counter = 0;
+static int dialog_counter = 0;
 
 float magnitude(float x) {
     if (x < 0) return -1.0f;
@@ -69,14 +70,14 @@ void DrawHeadShot(Texture2D texture) {
     DrawRectangle(width - w - 20, height - h - 160, w + 20, 10, WHITE);
 }
 
-bool DrawTextBox(char *dialog[], int dialog_counter, Font font) {
+bool DrawTextBox(Character_Dialog dialog[], int dialog_counter, Font font) {
     int box_width = width;
     int box_height = 250;
     const char *contin = "Continue";
     float contin_width = MeasureTextEx(font, contin, fontsize, 0).x;
 
     DrawRectangle(0, height - box_height, box_width, box_height, BLACK);
-    GuiLabel((Rectangle) { .x = 0, .y = height - box_height -100, .width = box_width, .height = box_height}, dialog[dialog_counter]);
+    GuiLabel((Rectangle) { .x = 0, .y = height - box_height -100, .width = box_width, .height = box_height}, dialog[dialog_counter].text);
 
     DrawTextEx(font, contin, (Vector2){ width - contin_width, height - 60 + 10 }, fontsize, 0, RAYWHITE);
 
@@ -234,8 +235,8 @@ int main(void) {
         } break;
         }
         
-        DrawHeadShot(character_pngs[dialog_speaker[dialog_counter]]);
-        DrawPlayerName(font, characters_tostring(dialog_speaker[dialog_counter]));
+        DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
+        DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
         if (DrawTextBox(dialog, dialog_counter, font))
             dialog_counter++;
         EndDrawing();
