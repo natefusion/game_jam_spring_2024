@@ -37,7 +37,9 @@ typedef struct {
     char *text;
 } Character_Dialog;
 
-static Character_Dialog dialog[] = {
+#define DIALOG_LINES 26
+
+static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ..."},
     {ONEFISH, "Welcome to HOOKED ON YOU"},
     {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ..."},
@@ -64,6 +66,12 @@ static Character_Dialog dialog[] = {
     {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!"},
     {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!"},
     {ONEFISH, "Let the games begin and may the best fish win!"},
+    {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!"},
+    {ONEFISH, "Without furthur ado, the winner is ..."},
+    {REDFISH, "Wow, I'm so excited. Being hooked has always been my dream!"},
+    {BLUFISH, "This is unbelievable. I can't wait to finally be hooked!"},
+    {YOUFISH, "..."},
+    {ONFISH, "MAGGIE MERMAID, are you satisfied with your catch?"},
 };
 
 static int dialog_counter = 0;
@@ -257,7 +265,7 @@ int main(void) {
         DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
         DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
         if (DrawTextBox(dialog[dialog_counter].text, font))
-            dialog_counter++;
+            if (dialog_counter < DIALOG_LINES) dialog_counter++;
         EndDrawing();
     }
 
