@@ -8,7 +8,7 @@ static int height = 1000;
 static int fontsize = 50;
 static int timer = 0;
 static bool animate = true;
-static Font font = LoadFontEx("/home/nathan/.fonts/c/CourierPrime_Regular.ttf", 96, 0, 0);
+
 
 static char *dialog[] = {
     "ONE",
@@ -47,7 +47,7 @@ bool DrawTextBox(char const *text, Font font) {
 int main(void) {
     InitWindow(width, height, "Test");
     SetTargetFPS(60);
-
+    Font font = LoadFontEx("/home/nathan/.fonts/c/CourierPrime_Regular.ttf", 96, 0, 0);
     GenTextureMipmaps(&font.texture);
     SetTextureFilter(font.texture, TEXTURE_FILTER_TRILINEAR);
     
