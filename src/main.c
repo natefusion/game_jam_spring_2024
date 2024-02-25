@@ -79,7 +79,7 @@ bool timer_has_ended(void) {
         return true;
     }
     
-    bool has_ended = GetTime() - last_time >= 1;
+    bool has_ended = GetTime() - last_time >= 20;
     if (has_ended) {
         timer_running = false;
     }
@@ -97,8 +97,11 @@ void enter_blufish(void) { draw_blufish = true; }
 void enter_youfish(void) { draw_youfish = true; }
 void enter_scores(void) { draw_scores = true; }
 
-void start_seasoning_minigame(void) { screen = SEASONING; start_minigame_timer(); }
-void start_coals_minigame(void) { screen = COALS; start_minigame_timer(); }
+static bool play_seasoning = false;
+void start_seasoning_minigame(void) { screen = SEASONING; play_seasoning = true; start_minigame_timer(); }
+
+static bool play_firedance = false;
+void start_coals_minigame(void) { screen = COALS; play_firedance = true; start_minigame_timer(); }
 
 static bool draw_hook = false;
 void launch_hook(void) {
@@ -323,9 +326,13 @@ int main(void) {
     Music chomp = LoadMusicStream("./resources/chomp.mp3");
     chomp.looping = false;
 
+    Music firedance = LoadMusicStream("./resources/firedance.mp3");
+    firedance.looping = false;
+
+    Music seasoning_mp3 = LoadMusicStream("./resources/seasoning.mp3");
+    seasoning_mp3.looping = false;
+    
     while (!WindowShouldClose()) {
-        UpdateMusicStream(chomp);
-        
         switch (screen) {
         case START: {
             if (decide_winner) {
@@ -346,6 +353,8 @@ int main(void) {
                 decide_winner = false;
             }
 
+            UpdateMusicStream(chomp);
+            
             if (play_chomp) {
                 PlayMusicStream(chomp);
                 play_chomp = false;
@@ -364,7 +373,17 @@ int main(void) {
                 UpdateTexture(character_pngs[REDFISH], redfish_pic.data);
                 UpdateTexture(character_pngs[BLUFISH], blufish_pic.data);
                 UpdateTexture(character_pngs[YOUFISH], youfish_pic.data);
+
+                StopMusicStream(seasoning_mp3);
             }
+
+            UpdateMusicStream(seasoning_mp3);
+
+            if (play_seasoning) {
+                PlayMusicStream(seasoning_mp3);
+                play_seasoning = false;
+            }
+
 
             redfish.x += speed * GetRandomValue(-1, 1);
             redfish.y += speed * GetRandomValue(-1, 1);
@@ -403,6 +422,8 @@ int main(void) {
             if (timer_has_ended()) {
                 screen = START;
 
+                StopMusicStream(firedance);
+
                 Image redfish_pic = LoadImageFromTexture(character_pngs[REDFISH]);
                 Image blufish_pic = LoadImageFromTexture(character_pngs[BLUFISH]);
                 Image youfish_pic = LoadImageFromTexture(character_pngs[YOUFISH]);
@@ -415,6 +436,13 @@ int main(void) {
                 UpdateTexture(character_pngs[YOUFISH], youfish_pic.data);
             }
 
+            UpdateMusicStream(firedance);
+
+            if (play_firedance) {
+                PlayMusicStream(firedance);
+                play_firedance = false;
+            }
+            
             redfish.x += speed * GetRandomValue(-1, 1);
             if (redfish.x < 0) redfish.x = speed;
             if (redfish.x > width) redfish.x = width - speed;
