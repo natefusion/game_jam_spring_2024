@@ -112,8 +112,10 @@ void take_fish(void) {
 }
 
 static int bite = 0;
+static bool play_chomp = false;
 void take_bite(void) {
     bite++;
+    play_chomp = true;
 }
 
 static bool decide_winner = false;
@@ -252,6 +254,7 @@ double coals_score_modifier(double t) {
 
 int main(void) {
     InitWindow(width, height, "Test");
+    InitAudioDevice();
     SetTargetFPS(60);
     Font font = LoadFontEx("./resources/Courier Prime.ttf", 96, 0, 0);
     GenTextureMipmaps(&font.texture);
@@ -317,7 +320,12 @@ int main(void) {
     UnloadImage(seafloor);
     UnloadImage(hook);
 
+    Music chomp = LoadMusicStream("./resources/chomp.mp3");
+    chomp.looping = false;
+
     while (!WindowShouldClose()) {
+        UpdateMusicStream(chomp);
+        
         switch (screen) {
         case START: {
             if (decide_winner) {
@@ -336,6 +344,11 @@ int main(void) {
                 }
 
                 decide_winner = false;
+            }
+
+            if (play_chomp) {
+                PlayMusicStream(chomp);
+                play_chomp = false;
             }
         } break;
         case SEASONING: {
@@ -535,6 +548,7 @@ int main(void) {
                         dialog[dialog_counter].trigger_action();
                     }
                     dialog_counter++;
+                    StopMusicStream(chomp);
                 } else {
                     exit(0);
                 }
