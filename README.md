@@ -21,6 +21,6 @@ Run the game.
 
 Download https://github.com/skeeto/w64devkit/.
 
-run W64Devkit.exe.
+Run W64Devkit.exe.
 
 Goto linux build instructions.
