@@ -12,13 +12,15 @@ static int speed = 10;
 typedef enum {
     SEASONING,
     COALS,
+    TITLE,
     START,
+    CREDITS,
     REDFISH_WINS,
     YOUFISH_WINS,
     BLUFISH_WINS
 } Screen;
 
-static Screen screen = START;
+static Screen screen = TITLE;
 static bool timer_running = false;
 
 typedef enum {
@@ -126,6 +128,10 @@ void goto_winner(void) {
     decide_winner = true;
 }
 
+void goto_credits(void) {
+    screen = CREDITS;
+}
+
 typedef struct {
     Character speaker;
     char *text;
@@ -138,16 +144,16 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ...", NULL},
     {ONEFISH, "Welcome to HOOKED ON YOU", NULL},
     {ONEFISH, "I'm your host, ONEFISH, and this is the only game show where YOU can have the chance to be hooked by our beautiful ...", NULL},
-    {ONEFISH, "MAGGIE MERMAID!!!", NULL},
+    {ONEFISH, "MERMAID!!!", NULL},
     {MERMAID, "Thank you so much ONEFISH. I'm flattered to have the opportunity to catch the fish of my dreams.", NULL},
-    {ONEFISH, "MAGGIE MERMAID, you won't be disappointed. We have three wonderful contestants here today.", NULL},
+    {ONEFISH, "MERMAID, you won't be disappointed. We have three wonderful contestants here today.", NULL},
     {ONEFISH, "Now, without furthur ado, let's welcome our first contestant:", NULL},
     {ONEFISH, "REDFISH!!!", enter_redfish},
     {REDFISH, "blub blub", NULL},
     {MERMAID, "Oh my, your red color makes my mouth water!", NULL},
     {ONEFISH, "Now, let's welcome our second contestant:", NULL},
     {ONEFISH, "BLUFISH!!!", enter_blufish},
-    {BLUFISH, "blub, blub MAGGIE MERMAID blub blub ", NULL},
+    {BLUFISH, "blub, blub MERMAID blub blub ", NULL},
     {MERMAID, "Oh my, you sure know how to flatter, BLUFISH!", NULL},
     {ONEFISH, "And finally, our third contestant:", NULL},
     {ONEFISH, "Erm, sorry, what was your name again?", NULL},
@@ -155,22 +161,22 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "YOUFISH!!!", enter_youfish},
     {YOUFISH, "...", NULL},
     {MERMAID, "There's no need to be nervous YOUFISH. That orange color of your just might get me hooked!", NULL},
-    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure THREE TRIALS!", NULL},
+    {ONEFISH, "Now, to become hooked by this wonderful  MERMAID here, you all must endure THREE TRIALS!", NULL},
     {ONEFISH, "No, wait, excuse me. TWO TRIALS!"},
     {ONEFISH, "Due to health and safety reasons from a local FISH rights group, we will not be playing the first trial"},
     {ONEFISH, "The fish to collect the most points wins!", enter_scores},
-    {ONEFISH, "The second, ehem, first trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
-    {ONEFISH, "Now, for the second and final trial to show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
+    {ONEFISH, "The second, ehem, first trial is a test of TASTE. Show MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
+    {ONEFISH, "Now, for the second and final trial to show  MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
     {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
     {ONEFISH, "Without furthur ado, the winner is ...", goto_winner},
-    {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
+    {ONEFISH, "MERMAID, are you satisfied with your catch?", NULL},
     {MERMAID, "I am absolutely HOOKED!!", launch_hook},
     {MERMAID, "Get over here!", take_fish},
-    {MERMAID, "It's time for your prize!", take_bite},
+    {MERMAID, "It's dinner time and I'm hungry!", take_bite},
     {MERMAID, "OM", take_bite},
     {MERMAID, "NOM", take_bite},
     {MERMAID, "NOM", NULL},
-    {MERMAID, "OOH, that hit the spot!", NULL},
+    {MERMAID, "OOH, that hit the spot!", goto_credits},
 };
 static int dialog_counter = 0;
 
@@ -334,6 +340,11 @@ int main(void) {
     
     while (!WindowShouldClose()) {
         switch (screen) {
+        case TITLE: {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                screen = START;
+            }
+        } break;
         case START: {
             if (decide_winner) {
                 float rs = total_score(redfish);
@@ -496,6 +507,11 @@ int main(void) {
             if (redfish.coals_timer_start) redfish.coals_timer++;
             if (blufish.coals_timer_start) blufish.coals_timer++;
         } break;
+        case CREDITS: {
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                exit(0);
+            }
+        } break;
         default:
             break;
         }
@@ -503,6 +519,17 @@ int main(void) {
         BeginDrawing();
 
         switch (screen) {
+        case TITLE: {
+            char *text = "Left click to play";
+            char *title = "Hooked On You!";
+            int title_fontsize = fontsize + fontsize;
+            Vector2 text_size = MeasureTextEx(font, text, fontsize, 0);
+            Vector2 title_size = MeasureTextEx(font, title, title_fontsize, 0);
+            
+            DrawTexture(seafloor_texture, 0, 0, WHITE);
+            DrawTextEx(font, title, (Vector2){ width/2.0 - title_size.x/2.0f, height/2.0 - title_fontsize * 3.0}, title_fontsize, 0, WHITE);
+            DrawTextEx(font, text, (Vector2){ width/2.0 - text_size.x/2.0f, height/2.0 - fontsize/2.0}, fontsize, 0, WHITE);
+        } break;
         case START: {
             DrawTexture(showroom_texture, 0, 0, WHITE);
 
@@ -571,14 +598,15 @@ int main(void) {
             DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
             DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
             if (DrawTextBox(dialog[dialog_counter].text, font)) {
-                if (dialog_counter < DIALOG_LINES - 1) {
+                if (dialog_counter < DIALOG_LINES) {
                     if (dialog[dialog_counter].trigger_action) {
                         dialog[dialog_counter].trigger_action();
                     }
+                }
+                
+                if (dialog_counter < DIALOG_LINES - 1) {
                     dialog_counter++;
                     StopMusicStream(chomp);
-                } else {
-                    exit(0);
                 }
             }
 
@@ -627,6 +655,25 @@ int main(void) {
                 screen = START;
             }
         }
+        } break;
+        case CREDITS: {
+            int i = 0;
+            DrawTexture(seafloor_texture, 0, 0, WHITE);
+            DrawTextEx(font, "Credits:", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "Programming:", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    Nathan Piel", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "Story:", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    Nathan Piel", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "Art:", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    Random images from google", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    Edited together in GIMP by Nathan Piel", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "Music:", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    firedance.mp3: Band standtune from high school", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+            DrawTextEx(font, "    seasoning.mp3: Original song by Nathan Piel", (Vector2){5, 5+fontsize*i++}, fontsize, 0, WHITE);
+
+            char *text = "Left click to exit";
+            Vector2 text_size = MeasureTextEx(font, text, fontsize, 0);
+            DrawTextEx(font, text, (Vector2){ width/2.0 - text_size.x/2.0f, height/2.0 - fontsize/2.0}, fontsize, 0, WHITE);
         } break;
         }
 
