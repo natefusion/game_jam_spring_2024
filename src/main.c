@@ -13,6 +13,9 @@ typedef enum {
     SEASONING,
     COALS,
     START,
+    REDFISH_WINS,
+    YOUFISH_WINS,
+    BLUFISH_WINS
 } Screen;
 
 static Screen screen = START;
@@ -93,13 +96,18 @@ void start_tug_of_war_minigame(void) { screen = TUG_OF_WAR; start_minigame_timer
 void start_seasoning_minigame(void) { screen = SEASONING; start_minigame_timer(); }
 void start_coals_minigame(void) { screen = COALS; start_minigame_timer(); }
 
+static bool decide_winner = false;
+void goto_winner(void) {
+    decide_winner = true;
+}
+
 typedef struct {
     Character speaker;
     char *text;
-    void (*trigger_action)(void);
+    void (*trigger_action)();
 } Character_Dialog;
 
-#define DIALOG_LINES 31
+#define DIALOG_LINES 28
 
 static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ...", NULL},
@@ -128,14 +136,32 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
     {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
     {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
-    {ONEFISH, "Without furthur ado, the winner is ...", NULL},
-    {REDFISH, "Wow, I'm so excited. Being hooked has always been my dream!", NULL},
-    {BLUFISH, "This is unbelievable. I can't wait to finally be hooked!", NULL},
-    {YOUFISH, "...", NULL},
+    {ONEFISH, "Without furthur ado, the winner is ...", goto_winner},
     {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
 };
-
 static int dialog_counter = 0;
+
+#define YOUFISH_DIALOG_LINES 2
+static Character_Dialog youfish_route[] = {
+    {ONEFISH, "YOUFISH!!!", NULL},
+    {YOUFISH, "...", NULL},
+};
+static int youfish_dialog_counter = 0;
+
+#define REDFISH_DIALOG_LINES 2
+static Character_Dialog redfish_route[] = {
+    {ONEFISH, "REDFISH!!!", NULL},
+    {REDFISH, "blub, blu blu blubbbb. HOOKED bloop blu blub!", NULL},
+};
+static int redfish_dialog_counter = 0;
+
+#define BLUFISH_DIALOG_LINES 2
+static Character_Dialog blufish_route[] = {
+    {ONEFISH, "BLUFISH!!!", NULL},
+    {REDFISH, "Blub!, blu blo blubb. blubb HOOKED blu blub blubb blub!", NULL},
+};
+static int blufish_dialog_counter = 0;
+
 
 float magnitude(float x) {
     if (x < 0) return -1.0f;
@@ -178,10 +204,14 @@ bool DrawTextBox(char *text, Font font) {
     return IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
 }
 
-void DrawTextureTiled(Texture2D texture) {
-    for (int i = 0; i < width; i += texture.width) {
-        for (int j = 0; j < height; j += texture.height) {
-            DrawTexture(texture, i, j, WHITE);
+void DrawTextureTiled(Texture2D foreground, Texture2D background, bool exclude_me[20][20]) {
+    for (int i = 0; i < 20; ++i) {
+        for (int j = 0; j < 20; ++j) {
+            if (!exclude_me[i][j]) {
+                DrawTexture(foreground, i*foreground.width, j*foreground.height, WHITE);
+            } else {
+                DrawTextureRec(background, (Rectangle){i*foreground.width, j*foreground.height, foreground.width, foreground.height}, (Vector2) {i*foreground.width, j*foreground.height}, WHITE) ;
+            }
         }
     }
 }
@@ -220,6 +250,12 @@ int main(void) {
     Image seasoning = LoadImage("./resources/seasoning.png");
     Texture2D seasoning_texture = LoadTextureFromImage(seasoning);
     UnloadImage(seasoning);
+    bool seasoning_collected[20][20];
+    for (int i = 0; i < 20; ++i) {
+        for (int j = 0; j < 20; ++j) {
+            seasoning_collected[i][j] = false;
+        }
+    }
 
     Image onefish_pic = LoadImage("./resources/onefish.png");
     Image youfish_pic = LoadImage("./resources/youfish.png");
@@ -256,7 +292,20 @@ int main(void) {
     while (!WindowShouldClose()) {
         switch (screen) {
         case START: {
-            // nothing here :)
+            if (decide_winner) {
+                float rs = total_score(redfish);
+                float bs = total_score(blufish);
+                float ys = total_score(youfish);
+                if (rs > bs && rs > ys) {
+                    screen = REDFISH_WINS;
+                } else if (bs > rs && bs > ys) {
+                    screen = BLUFISH_WINS;
+                } else if (ys > rs && ys > bs) {
+                    screen = YOUFISH_WINS;
+                }
+
+                decide_winner = false;
+            }
         } break;
         case TUG_OF_WAR: {
             if (timer_has_ended()) {
@@ -267,6 +316,8 @@ int main(void) {
             if (timer_has_ended()) {
                 screen = START;
             }
+
+            seasoning_collected[x / 50][y / 50] = true;
             if (IsKeyDown(KEY_LEFT)) {
                 if (x > 0) x -= speed;
                 youfish.seasoning_score += .1;
@@ -352,7 +403,7 @@ int main(void) {
             if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
         } break;
         case SEASONING: {
-            DrawTextureTiled(seasoning_texture);
+            DrawTextureTiled(seasoning_texture, seafloor_texture, seasoning_collected);
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, RAYWHITE);
             DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
             if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
@@ -366,6 +417,33 @@ int main(void) {
             DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, GREEN);
             DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
             if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
+        } break;
+        case YOUFISH_WINS: {
+            if (DrawTextBox(youfish_route[youfish_dialog_counter].text, font)) {
+                if (youfish_dialog_counter < YOUFISH_DIALOG_LINES - 1) {                    
+                    youfish_dialog_counter++;
+                } else {
+                    screen = START;
+                }
+            }
+        } break;
+        case REDFISH_WINS: {
+            if (DrawTextBox(redfish_route[redfish_dialog_counter].text, font)) {
+            if (redfish_dialog_counter < REDFISH_DIALOG_LINES - 1) {                    
+                redfish_dialog_counter++;
+            } else {
+                screen = START;
+            }
+        }
+        } break;
+        case BLUFISH_WINS: {
+            if (DrawTextBox(blufish_route[blufish_dialog_counter].text, font)) {
+                if (blufish_dialog_counter < BLUFISH_DIALOG_LINES - 1) {                    
+                blufish_dialog_counter++;
+            } else {
+                screen = START;
+            }
+        }
         } break;
         }
 
