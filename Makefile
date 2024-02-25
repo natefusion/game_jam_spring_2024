@@ -49,6 +49,7 @@ debug: OUTPUT = $(DEBUG)
 debug: FLAGS += -g
 debug: executable
 
+release: mkdir
 release: OUTPUT = $(RELEASE)
 release: FLAGS += -O2
 release: executable
