@@ -39,7 +39,7 @@ ifeq ($(PLATFORM_OS),WINDOWS)
 endif
 
 ifeq ($(PLATFORM_OS),LINUX)
-	FLAGS = -lGL -lm -lpthread -ldl -lrt -lX11
+	FLAGS += -lGL -lm -lpthread -ldl -lrt -lX11
 endif
 
 INCLUDE_PATHS = -I$(RAYLIB_PATH) -I$(RAYGUI_PATH)
