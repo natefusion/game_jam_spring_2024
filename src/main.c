@@ -111,6 +111,11 @@ void take_fish(void) {
     draw_hook = false;
 }
 
+static int bite = 0;
+void take_bite(void) {
+    bite++;
+}
+
 static bool decide_winner = false;
 void goto_winner(void) {
     decide_winner = true;
@@ -122,7 +127,7 @@ typedef struct {
     void (*trigger_action)();
 } Character_Dialog;
 
-#define DIALOG_LINES 31
+#define DIALOG_LINES 35
 
 static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ...", NULL},
@@ -156,6 +161,10 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {MERMAID, "I am absolutely HOOKED!!", launch_hook},
     {MERMAID, "Get over here!", take_fish},
     {MERMAID, "It's time for your prize!", NULL},
+    {MERMAID, "OM", take_bite},
+    {MERMAID, "NOM", take_bite},
+    {MERMAID, "NOM", take_bite},
+    {MERMAID, "OOH, that hit the spot!", NULL},
 };
 static int dialog_counter = 0;
 
@@ -256,7 +265,7 @@ int main(void) {
     Fish blufish = make_fish(BLUFISH);
     Fish youfish = make_fish(YOUFISH);
 
-    Character winning_fish;
+    Character winning_fish = REDFISH;
 
     Image seasoning = LoadImage("./resources/seasoning.png");
     Texture2D seasoning_texture = LoadTextureFromImage(seasoning);
@@ -441,7 +450,7 @@ int main(void) {
                 if (draw_blufish) { DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE); }
                 if (draw_youfish) { DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE); }
                 if (draw_scores)  { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
-
+                            
                 if (draw_hook) {
                     switch (winning_fish) {
                     case REDFISH: {
@@ -460,7 +469,25 @@ int main(void) {
                 }
             } else {
                 DrawTexture(hook_texture, -630, 250, WHITE);
-                DrawTexture(character_pngs[winning_fish], 80, 365, WHITE);
+
+                switch (bite) {
+                case 0: {
+                    DrawTexture(character_pngs[winning_fish], 80, 365, WHITE);
+                } break;
+                case 1: {
+                    int w = character_pngs[winning_fish].width;
+                    int h = character_pngs[winning_fish].height;
+                    DrawTextureRec(character_pngs[winning_fish], (Rectangle){.x=0,.y=30, .width=w, .height=h-30},(Vector2){80, 365}, WHITE);    
+                } break;
+                case 2: {
+                    int w = character_pngs[winning_fish].width;
+                    int h = character_pngs[winning_fish].height;
+                    DrawTextureRec(character_pngs[winning_fish], (Rectangle){.x=0,.y=60, .width=w, .height=h-60},(Vector2){80, 365}, WHITE);  
+                } break;
+                case 3:
+                    break;
+                }
+
 
                 // my god is this shitty 
                 switch (winning_fish) {
@@ -489,6 +516,8 @@ int main(void) {
                         dialog[dialog_counter].trigger_action();
                     }
                     dialog_counter++;
+                } else {
+                    exit(0);
                 }
             }
 
