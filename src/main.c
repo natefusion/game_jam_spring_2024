@@ -262,7 +262,7 @@ double coals_score_modifier(double t) {
 }
 
 int main(void) {
-    InitWindow(width, height, "Test");
+    InitWindow(width, height, "Hooked On You! by Nathan Piel");
     InitAudioDevice();
     SetTargetFPS(60);
     Font font = LoadFontEx("./resources/Courier Prime.ttf", 96, 0, 0);
