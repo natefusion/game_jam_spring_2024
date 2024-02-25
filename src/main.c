@@ -27,7 +27,9 @@ typedef enum {
     ONEFISH = 1,
     REDFISH = 2,
     BLUFISH = 3,
-    YOUFISH = 4
+    YOUFISH = 4,
+    SEASON = 5,
+    GRILL = 6,
 } Character;
 
 typedef struct {
@@ -282,37 +284,40 @@ int main(void) {
     Image redfish_pic = LoadImage("./resources/redfish.png");
     Image blufish_pic = LoadImage("./resources/blufish.png");
     Image mermaid_pic = LoadImage("./resources/mermaid.png");
+    Image season_pic = LoadImage("./resources/season.png");
+    Image grill_pic = LoadImage("./resources/grill.png");
+    Image coals = LoadImage("./resources/coals.png");
+    Image showroom = LoadImage("./resources/background0.png");
+    Image seafloor = LoadImage("./resources/seafloor.png");
+    Image hook = LoadImage("./resources/hook.png");
 
+    Texture2D coals_texture = LoadTextureFromImage(coals);
+    Texture2D showroom_texture = LoadTextureFromImage(showroom);
+    Texture2D seafloor_texture = LoadTextureFromImage(seafloor);
+    Texture2D hook_texture = LoadTextureFromImage(hook);
+    
     Texture2D character_pngs[] = {
         [MERMAID] = LoadTextureFromImage(mermaid_pic),
         [ONEFISH] = LoadTextureFromImage(onefish_pic),
         [REDFISH] = LoadTextureFromImage(redfish_pic),
         [BLUFISH] = LoadTextureFromImage(blufish_pic),
         [YOUFISH] = LoadTextureFromImage(youfish_pic),
+        [SEASON] = LoadTextureFromImage(season_pic),
+        [GRILL] = LoadTextureFromImage(grill_pic),
     };
-    
-    UnloadImage(mermaid_pic);
+
     UnloadImage(onefish_pic);
     UnloadImage(redfish_pic);
     UnloadImage(blufish_pic);
     UnloadImage(youfish_pic);
-    
-    Image coals = LoadImage("./resources/coals.png");
-    Texture2D coals_texture = LoadTextureFromImage(coals);
+    UnloadImage(mermaid_pic);
+    UnloadImage(season_pic);
+    UnloadImage(grill_pic);
     UnloadImage(coals);
-
-    Image showroom = LoadImage("./resources/background0.png");
-    Texture2D showroom_texture = LoadTextureFromImage(showroom);
     UnloadImage(showroom);
-
-    Image seafloor = LoadImage("./resources/seafloor.png");
-    Texture2D seafloor_texture = LoadTextureFromImage(seafloor);
     UnloadImage(seafloor);
-
-    Image hook = LoadImage("./resources/hook.png");
-    Texture2D hook_texture = LoadTextureFromImage(hook);
     UnloadImage(hook);
-    
+
     while (!WindowShouldClose()) {
         switch (screen) {
         case START: {
@@ -342,6 +347,16 @@ int main(void) {
         case SEASONING: {
             if (timer_has_ended()) {
                 screen = START;
+                Image redfish_pic = LoadImageFromTexture(character_pngs[REDFISH]);
+                Image blufish_pic = LoadImageFromTexture(character_pngs[BLUFISH]);
+                Image youfish_pic = LoadImageFromTexture(character_pngs[YOUFISH]);
+                Image season_pic = LoadImageFromTexture(character_pngs[SEASON]);
+                ImageDraw(&redfish_pic, season_pic, (Rectangle){0, 0, season_pic.width, season_pic.height}, (Rectangle){0, 0, season_pic.width, season_pic.height}, WHITE);
+                ImageDraw(&blufish_pic, season_pic, (Rectangle){0, 0, season_pic.width, season_pic.height}, (Rectangle){0, 0, season_pic.width, season_pic.height}, WHITE);
+                ImageDraw(&youfish_pic, season_pic, (Rectangle){0, 0, season_pic.width, season_pic.height}, (Rectangle){0, 0, season_pic.width, season_pic.height}, WHITE);
+                UpdateTexture(character_pngs[REDFISH], redfish_pic.data);
+                UpdateTexture(character_pngs[BLUFISH], blufish_pic.data);
+                UpdateTexture(character_pngs[YOUFISH], youfish_pic.data);
             }
 
             redfish.x += speed * GetRandomValue(-1, 1);
@@ -380,6 +395,17 @@ int main(void) {
         case COALS: {
             if (timer_has_ended()) {
                 screen = START;
+
+                Image redfish_pic = LoadImageFromTexture(character_pngs[REDFISH]);
+                Image blufish_pic = LoadImageFromTexture(character_pngs[BLUFISH]);
+                Image youfish_pic = LoadImageFromTexture(character_pngs[YOUFISH]);
+                Image grill_pic = LoadImageFromTexture(character_pngs[GRILL]);
+                ImageDraw(&redfish_pic, grill_pic, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, WHITE);
+                ImageDraw(&blufish_pic, grill_pic, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, WHITE);
+                ImageDraw(&youfish_pic, grill_pic, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, (Rectangle){0, 0, grill_pic.width, grill_pic.height}, WHITE);
+                UpdateTexture(character_pngs[REDFISH], redfish_pic.data);
+                UpdateTexture(character_pngs[BLUFISH], blufish_pic.data);
+                UpdateTexture(character_pngs[YOUFISH], youfish_pic.data);
             }
 
             redfish.x += speed * GetRandomValue(-1, 1);
@@ -465,11 +491,8 @@ int main(void) {
                     default:
                         break;
                     }
-
                 }
             } else {
-                
-
                 switch (bite) {
                 case 0: {
                     DrawTexture(hook_texture, -630, 250, WHITE);
@@ -483,6 +506,7 @@ int main(void) {
                 case 2: {
                     int w = character_pngs[winning_fish].width;
                     int h = character_pngs[winning_fish].height;
+                    
                     DrawTextureRec(character_pngs[winning_fish], (Rectangle){.x=0,.y=60, .width=w, .height=h-60},(Vector2){80, 365}, WHITE);  
                 } break;
                 case 3:
