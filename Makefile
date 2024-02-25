@@ -31,11 +31,7 @@ CC = gcc
 FLAGS = -Wall -pipe -lraylib
 
 ifeq ($(PLATFORM_OS),WINDOWS)
-    # Libraries for Windows desktop compilation
-    # NOTE: WinMM library required to set high-res timer resolution
-    FLAGS += -lraylib -lopengl32 -lgdi32 -lwinmm
-    # # Required for physac examples
-    # FLAGS += -static -lpthread
+    FLAGS += -lraylib -lopengl32 -lgdi32 -lwinmm -Wl,--subsystem,windows
 endif
 
 ifeq ($(PLATFORM_OS),LINUX)

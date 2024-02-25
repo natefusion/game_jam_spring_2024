@@ -262,6 +262,7 @@ double coals_score_modifier(double t) {
 }
 
 int main(void) {
+    SetTraceLogLevel(LOG_NONE);
     InitWindow(width, height, "Hooked On You! by Nathan Piel");
     InitAudioDevice();
     SetTargetFPS(60);
