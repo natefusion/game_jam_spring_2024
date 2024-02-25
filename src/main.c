@@ -10,7 +10,6 @@ static double last_time = 0;
 static int speed = 10;
 
 typedef enum {
-    TUG_OF_WAR,
     SEASONING,
     COALS,
     START,
@@ -98,7 +97,6 @@ void enter_blufish(void) { draw_blufish = true; }
 void enter_youfish(void) { draw_youfish = true; }
 void enter_scores(void) { draw_scores = true; }
 
-void start_tug_of_war_minigame(void) { screen = TUG_OF_WAR; start_minigame_timer(); }
 void start_seasoning_minigame(void) { screen = SEASONING; start_minigame_timer(); }
 void start_coals_minigame(void) { screen = COALS; start_minigame_timer(); }
 
@@ -129,7 +127,7 @@ typedef struct {
     void (*trigger_action)();
 } Character_Dialog;
 
-#define DIALOG_LINES 35
+#define DIALOG_LINES 36
 
 static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ...", NULL},
@@ -152,11 +150,12 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "YOUFISH!!!", enter_youfish},
     {YOUFISH, "...", NULL},
     {MERMAID, "There's no need to be nervous YOUFISH. That orange color of your just might get me hooked!", NULL},
-    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure three trials!", NULL},
+    {ONEFISH, "Now, to become hooked by this wonderful MAGGIE MERMAID here, you all must endure THREE TRIALS!", NULL},
+    {ONEFISH, "No, wait, excuse me. TWO TRIALS!"},
+    {ONEFISH, "Due to health and safety reasons from a local FISH rights group, we will not be playing the first trial"},
     {ONEFISH, "The fish to collect the most points wins!", enter_scores},
-    {ONEFISH, "The first trial is a test of STRENGTH. Show MAGGIE MERMAID your muscles in a game of TUG OF WAR", start_tug_of_war_minigame},
-    {ONEFISH, "The second trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
-    {ONEFISH, "Now, for the third and final test show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
+    {ONEFISH, "The second, ehem, first trial is a test of TASTE. Show MAGGIE MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
+    {ONEFISH, "Now, for the second and final trial to show MAGGIE MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
     {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
     {ONEFISH, "Without furthur ado, the winner is ...", goto_winner},
     {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
@@ -337,11 +336,6 @@ int main(void) {
                 }
 
                 decide_winner = false;
-            }
-        } break;
-        case TUG_OF_WAR: {
-            if (timer_has_ended()) {
-                screen = START;
             }
         } break;
         case SEASONING: {
@@ -546,10 +540,6 @@ int main(void) {
                 }
             }
 
-        } break;
-        case TUG_OF_WAR: {
-            DrawTexture(seafloor_texture, 0, 0, WHITE);
-            if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
         } break;
         case SEASONING: {
             DrawTextureTiled(seasoning_texture, seafloor_texture, seasoning_collected);

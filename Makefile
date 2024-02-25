@@ -4,6 +4,21 @@ RELEASE = target/release/$(PROJECT)
 RAYLIB_PATH = raylib/src
 RAYGUI_PATH = raygui/src
 
+ifeq ($(OS),Windows_NT)
+    PLATFORM_OS=WINDOWS
+else
+    UNAMEOS=$(shell uname)
+    ifeq ($(UNAMEOS),Linux)
+        PLATFORM_OS=LINUX
+    endif
+endif
+
+MAKE = mingw32-make
+
+ifeq ($(PLATFORM_OS),LINUX)
+    MAKE = make
+endif
+
 all: mkdir debug
 
 mkdir:
@@ -12,7 +27,21 @@ mkdir:
 
 SRC = $(wildcard src/*.c)
 CC = gcc
-FLAGS = -Wall -pipe -lraylib -lGL -lm -lpthread -ldl -lrt -lX11
+
+FLAGS = -Wall -pipe -lraylib
+
+ifeq ($(PLATFORM_OS),WINDOWS)
+    # Libraries for Windows desktop compilation
+    # NOTE: WinMM library required to set high-res timer resolution
+    FLAGS += -lraylib -lopengl32 -lgdi32 -lwinmm
+    # # Required for physac examples
+    # FLAGS += -static -lpthread
+endif
+
+ifeq ($(PLATFORM_OS),LINUX)
+	FLAGS = -lGL -lm -lpthread -ldl -lrt -lX11
+endif
+
 INCLUDE_PATHS = -I$(RAYLIB_PATH) -I$(RAYGUI_PATH)
 LDFLAGS = -L$(RAYLIB_PATH)
 
