@@ -160,10 +160,10 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
     {MERMAID, "I am absolutely HOOKED!!", launch_hook},
     {MERMAID, "Get over here!", take_fish},
-    {MERMAID, "It's time for your prize!", NULL},
+    {MERMAID, "It's time for your prize!", take_bite},
     {MERMAID, "OM", take_bite},
     {MERMAID, "NOM", take_bite},
-    {MERMAID, "NOM", take_bite},
+    {MERMAID, "NOM", NULL},
     {MERMAID, "OOH, that hit the spot!", NULL},
 };
 static int dialog_counter = 0;
@@ -468,10 +468,11 @@ int main(void) {
 
                 }
             } else {
-                DrawTexture(hook_texture, -630, 250, WHITE);
+                
 
                 switch (bite) {
                 case 0: {
+                    DrawTexture(hook_texture, -630, 250, WHITE);
                     DrawTexture(character_pngs[winning_fish], 80, 365, WHITE);
                 } break;
                 case 1: {
