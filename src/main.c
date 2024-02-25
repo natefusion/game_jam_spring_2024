@@ -78,7 +78,7 @@ bool timer_has_ended(void) {
         return true;
     }
     
-    bool has_ended = GetTime() - last_time >= 5;
+    bool has_ended = GetTime() - last_time >= 1;
     if (has_ended) {
         timer_running = false;
     }
@@ -100,6 +100,17 @@ void start_tug_of_war_minigame(void) { screen = TUG_OF_WAR; start_minigame_timer
 void start_seasoning_minigame(void) { screen = SEASONING; start_minigame_timer(); }
 void start_coals_minigame(void) { screen = COALS; start_minigame_timer(); }
 
+static bool draw_hook = false;
+void launch_hook(void) {
+    draw_hook = true;
+}
+
+static bool draw_fish_and_hook = false;
+void take_fish(void) {
+    draw_fish_and_hook = true;
+    draw_hook = false;
+}
+
 static bool decide_winner = false;
 void goto_winner(void) {
     decide_winner = true;
@@ -111,7 +122,7 @@ typedef struct {
     void (*trigger_action)();
 } Character_Dialog;
 
-#define DIALOG_LINES 28
+#define DIALOG_LINES 31
 
 static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Ladies and gentlefish ...", NULL},
@@ -142,6 +153,9 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
     {ONEFISH, "Without furthur ado, the winner is ...", goto_winner},
     {ONEFISH, "MAGGIE MERMAID, are you satisfied with your catch?", NULL},
+    {MERMAID, "I am absolutely HOOKED!!", launch_hook},
+    {MERMAID, "Get over here!", take_fish},
+    {MERMAID, "It's time for your prize!", NULL},
 };
 static int dialog_counter = 0;
 
@@ -242,6 +256,8 @@ int main(void) {
     Fish blufish = make_fish(BLUFISH);
     Fish youfish = make_fish(YOUFISH);
 
+    Character winning_fish;
+
     Image seasoning = LoadImage("./resources/seasoning.png");
     Texture2D seasoning_texture = LoadTextureFromImage(seasoning);
     UnloadImage(seasoning);
@@ -283,6 +299,10 @@ int main(void) {
     Image seafloor = LoadImage("./resources/seafloor.png");
     Texture2D seafloor_texture = LoadTextureFromImage(seafloor);
     UnloadImage(seafloor);
+
+    Image hook = LoadImage("./resources/hook.png");
+    Texture2D hook_texture = LoadTextureFromImage(hook);
+    UnloadImage(hook);
     
     while (!WindowShouldClose()) {
         switch (screen) {
@@ -293,10 +313,13 @@ int main(void) {
                 float ys = total_score(youfish);
                 if (rs > bs && rs > ys) {
                     screen = REDFISH_WINS;
+                    winning_fish = REDFISH;
                 } else if (bs > rs && bs > ys) {
                     screen = BLUFISH_WINS;
+                    winning_fish = BLUFISH;
                 } else if (ys > rs && ys > bs) {
                     screen = YOUFISH_WINS;
+                    winning_fish = YOUFISH;
                 }
 
                 decide_winner = false;
@@ -403,6 +426,8 @@ int main(void) {
             if (redfish.coals_timer_start) redfish.coals_timer++;
             if (blufish.coals_timer_start) blufish.coals_timer++;
         } break;
+        default:
+            break;
         }
 
         BeginDrawing();
@@ -411,10 +436,50 @@ int main(void) {
         case START: {
             DrawTexture(showroom_texture, 0, 0, WHITE);
 
-            if (draw_redfish) { DrawTexture(character_pngs[REDFISH], 549, 403, WHITE); }
-            if (draw_blufish) { DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE); }
-            if (draw_youfish) { DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE); }
-            if (draw_scores)  { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
+            if (!draw_fish_and_hook) {
+                if (draw_redfish) { DrawTexture(character_pngs[REDFISH], 549, 403, WHITE); }
+                if (draw_blufish) { DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE); }
+                if (draw_youfish) { DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE); }
+                if (draw_scores)  { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
+
+                if (draw_hook) {
+                    switch (winning_fish) {
+                    case REDFISH: {
+                        DrawTexture(hook_texture, 125-300, 305, WHITE);
+                    } break;
+                    case BLUFISH: {
+                        DrawTexture(hook_texture, 125-150, 305, WHITE);;
+                    } break;
+                    case YOUFISH: {
+                        DrawTexture(hook_texture, 125, 305, WHITE);
+                    } break;
+                    default:
+                        break;
+                    }
+
+                }
+            } else {
+                DrawTexture(hook_texture, -630, 250, WHITE);
+                DrawTexture(character_pngs[winning_fish], 80, 365, WHITE);
+
+                // my god is this shitty 
+                switch (winning_fish) {
+                case REDFISH: {
+                    DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE);
+                    DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE);
+                } break;
+                case BLUFISH: {
+                    DrawTexture(character_pngs[REDFISH], 549, 403, WHITE);
+                    DrawTexture(character_pngs[YOUFISH], 847, 403, WHITE);
+                } break;
+                case YOUFISH: {
+                    DrawTexture(character_pngs[REDFISH], 549, 403, WHITE);
+                    DrawTexture(character_pngs[BLUFISH], 689, 403, WHITE);
+                } break;
+                default:
+                    break;
+                }
+            }
 
             DrawHeadShot(character_pngs[dialog[dialog_counter].speaker]);
             DrawPlayerName(font, characters_tostring(dialog[dialog_counter].speaker));
@@ -426,6 +491,7 @@ int main(void) {
                     dialog_counter++;
                 }
             }
+
         } break;
         case TUG_OF_WAR: {
             DrawTexture(seafloor_texture, 0, 0, WHITE);
