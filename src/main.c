@@ -7,6 +7,7 @@ static int width  = 1000;
 static int height = 1000;
 static int fontsize = 30;
 static double last_time = 0;
+static int speed = 10;
 
 typedef enum {
     TUG_OF_WAR,
@@ -35,16 +36,19 @@ typedef struct {
     float tug_of_war_score;
     float seasoning_score;
     float coals_score;
+    int coals_timer;
+    bool coals_timer_start;
     Character name;
 } Fish;
 
 Fish make_fish(Character name) {
     return (Fish) {
-        .x = 0,
-        .y = 0,
+        .x = GetRandomValue(speed, width - 1 - speed),
+        .y = GetRandomValue(speed, height - 1 - speed),
         .tug_of_war_score = 0,
         .seasoning_score = 0,
         .coals_score = 0,
+        .coals_timer = 0,
         .name = name
     };
 }
@@ -162,11 +166,9 @@ static Character_Dialog blufish_route[] = {
 };
 static int blufish_dialog_counter = 0;
 
-
-float magnitude(float x) {
-    if (x < 0) return -1.0f;
-    if (x > 0) return 1.0f;
-    return 0.0f;
+float max(float x, float y) {
+    if (x > y) return x;
+    return y;
 }
 
 void DrawPlayerName(Font font, char *text) {
@@ -193,7 +195,7 @@ void DrawHeadShot(Texture2D texture) {
 bool DrawTextBox(char *text, Font font) {
     int box_width = width;
     int box_height = 250;
-    const char *contin = "Continue";
+    const char *contin = "Left click to continue";
     float contin_width = MeasureTextEx(font, contin, fontsize, 0).x;
 
     DrawRectangle(0, height - box_height, box_width, box_height, BLACK);
@@ -235,13 +237,6 @@ int main(void) {
     GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xf5f5f5ff);
     GuiSetStyle(DEFAULT, TEXT_WRAP_MODE, TEXT_WRAP_WORD);
     GuiSetStyle(DEFAULT, TEXT_LINE_SPACING, fontsize);
-
-    int speed = 10;
-    int x = 0;
-    int y = 0;
-
-    bool coals_timer_start = false;
-    int coals_timer = 0;
 
     Fish redfish = make_fish(REDFISH);
     Fish blufish = make_fish(BLUFISH);
@@ -317,62 +312,96 @@ int main(void) {
                 screen = START;
             }
 
-            seasoning_collected[x / 50][y / 50] = true;
-            if (IsKeyDown(KEY_LEFT)) {
-                if (x > 0) x -= speed;
-                youfish.seasoning_score += .1;
-            }
+            redfish.x += speed * GetRandomValue(-1, 1);
+            redfish.y += speed * GetRandomValue(-1, 1);
+            if (redfish.x < 0) redfish.x = speed;
+            if (redfish.x > width) redfish.x = width - speed;
+
+            blufish.x += speed * GetRandomValue(-1, 1);
+            blufish.y += speed * GetRandomValue(-1, 1);
+            if (blufish.x < 0) blufish.x = speed;
+            if (blufish.x > width) blufish.x = speed;
+
+            if (IsKeyDown(KEY_LEFT)  && youfish.x > 0)      youfish.x -= speed;
+            if (IsKeyDown(KEY_RIGHT) && youfish.x < width)  youfish.x += speed;
+            if (IsKeyDown(KEY_UP)    && youfish.y > 0)      youfish.y -= speed;
+            if (IsKeyDown(KEY_DOWN)  && youfish.y < height) youfish.y += speed;
+
+            int fish_w = character_pngs[YOUFISH].width;
+            int fish_h = character_pngs[YOUFISH].height;
+            int yf_ssx = (youfish.x+fish_w/2) / seasoning_texture.width;
+            int yf_ssy = (youfish.y+fish_h/2) / seasoning_texture.height;
+            int rf_ssx = (redfish.x+fish_w/2) / seasoning_texture.width;
+            int rf_ssy = (redfish.y+fish_h/2) / seasoning_texture.height;
+            int bf_ssx = (blufish.x+fish_w/2) / seasoning_texture.width;
+            int bf_ssy = (blufish.y+fish_h/2) / seasoning_texture.height;
             
-            if (IsKeyDown(KEY_RIGHT)) {
-                if (x < width) x += speed;
-                youfish.seasoning_score += .1;
-            }
-            
-            if (IsKeyDown(KEY_UP)) {
-                if (y > 0) y -= speed;
-                youfish.seasoning_score += .1;
-            }
-            
-            if (IsKeyDown(KEY_DOWN)) {
-                if (y < height) y += speed;
-                youfish.seasoning_score += .1;
-            }
+            if (!seasoning_collected[yf_ssx][yf_ssy]) youfish.seasoning_score += 1;
+            if (!seasoning_collected[rf_ssx][rf_ssy]) redfish.seasoning_score += 1;
+            if (!seasoning_collected[bf_ssx][bf_ssy]) blufish.seasoning_score += 1;
+
+            seasoning_collected[yf_ssx][yf_ssy] = true;
+            seasoning_collected[rf_ssx][rf_ssy] = true;
+            seasoning_collected[bf_ssx][bf_ssy] = true;
+
         } break;
         case COALS: {
             if (timer_has_ended()) {
                 screen = START;
             }
-            if (IsKeyDown(KEY_LEFT)) {
-                if (x > 0) x -= speed;
-            }
-            
-            if (IsKeyDown(KEY_RIGHT)) {
-                if (x < width) x += speed;
-            }
-            
-            if (IsKeyDown(KEY_UP)) {
-                if (y > 0) y -= speed;
-            }
-            
-            if (IsKeyDown(KEY_DOWN)) {
-                if (y < height) y += speed;
-            }
 
-            if (x > width/2 - coals_texture.width/2 && x < width/2 + coals_texture.width/2) {
-                if (!coals_timer_start) coals_timer_start = true;
-                youfish.coals_score += coals_score_modifier(coals_timer);
+            redfish.x += speed * GetRandomValue(-1, 1);
+            if (redfish.x < 0) redfish.x = speed;
+            if (redfish.x > width) redfish.x = width - speed;
+
+            blufish.x += speed * GetRandomValue(-1, 1);
+            if (blufish.x < 0) blufish.x = speed;
+            if (blufish.x > width) blufish.x = width - speed;
+
+            if (IsKeyDown(KEY_LEFT)  && youfish.x > 0)      youfish.x -= speed;
+            if (IsKeyDown(KEY_RIGHT) && youfish.x < width)  youfish.x += speed;
+            if (IsKeyDown(KEY_UP)    && youfish.y > 0)      youfish.y -= speed;
+            if (IsKeyDown(KEY_DOWN)  && youfish.y < height) youfish.y += speed;
+
+            if (youfish.x > width/2 - coals_texture.width/2 && youfish.x < width/2 + coals_texture.width/2) {
+                if (!youfish.coals_timer_start) youfish.coals_timer_start = true;
+                youfish.coals_score += coals_score_modifier(youfish.coals_timer);
                 if (youfish.coals_score < 0)
                     youfish.coals_score = 0;
             } else {
-                if (coals_timer_start) {
-                    coals_timer_start = false;
-                    coals_timer = 0;
+                if (youfish.coals_timer_start) {
+                    youfish.coals_timer_start = false;
+                    youfish.coals_timer = 0;
                 }
             }
 
-            if (coals_timer_start) {
-                coals_timer++;
+            if (redfish.x > width/2 - coals_texture.width/2 && redfish.x < width/2 + coals_texture.width/2) {
+                if (!redfish.coals_timer_start) redfish.coals_timer_start = true;
+                redfish.coals_score += coals_score_modifier(redfish.coals_timer);
+                if (redfish.coals_score < 0)
+                    redfish.coals_score = 0;
+            } else {
+                if (redfish.coals_timer_start) {
+                    redfish.coals_timer_start = false;
+                    redfish.coals_timer = 0;
+                }
             }
+
+            if (blufish.x > width/2 - coals_texture.width/2 && blufish.x < width/2 + coals_texture.width/2) {
+                if (!blufish.coals_timer_start) blufish.coals_timer_start = true;
+                blufish.coals_score += coals_score_modifier(blufish.coals_timer);
+                if (blufish.coals_score < 0)
+                    blufish.coals_score = 0;
+            } else {
+                if (blufish.coals_timer_start) {
+                    blufish.coals_timer_start = false;
+                    blufish.coals_timer = 0;
+                }
+            }
+
+            if (youfish.coals_timer_start) youfish.coals_timer++;
+            if (redfish.coals_timer_start) redfish.coals_timer++;
+            if (blufish.coals_timer_start) blufish.coals_timer++;
         } break;
         }
 
@@ -404,8 +433,9 @@ int main(void) {
         } break;
         case SEASONING: {
             DrawTextureTiled(seasoning_texture, seafloor_texture, seasoning_collected);
-            DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, RAYWHITE);
-            DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
+            DrawTexture(character_pngs[YOUFISH], youfish.x, youfish.y, WHITE);
+            DrawTexture(character_pngs[REDFISH], redfish.x, redfish.y, WHITE);
+            DrawTexture(character_pngs[BLUFISH], blufish.x, blufish.y, WHITE);
             if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
         } break;
         case COALS: {
@@ -414,8 +444,9 @@ int main(void) {
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height, WHITE);
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height*2, WHITE);
             DrawTexture(coals_texture, width/2 - coals_texture.width/2, coals_texture.height*3, WHITE);
-            DrawTextEx(font, "YOU", (Vector2){x, y-20}, fontsize, 0, GREEN);
-            DrawTexture(character_pngs[YOUFISH], x, y, WHITE);
+            DrawTexture(character_pngs[YOUFISH], youfish.x, youfish.y, WHITE);
+            DrawTexture(character_pngs[REDFISH], redfish.x, redfish.y, WHITE);
+            DrawTexture(character_pngs[BLUFISH], blufish.x, blufish.y, WHITE);
             if (draw_scores) { DrawScores(font, total_score(redfish), total_score(blufish), total_score(youfish)); }
         } break;
         case YOUFISH_WINS: {
