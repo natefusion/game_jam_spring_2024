@@ -166,7 +166,7 @@ static Character_Dialog dialog[DIALOG_LINES] = {
     {ONEFISH, "Due to health and safety reasons from a local FISH rights group, we will not be playing the first trial"},
     {ONEFISH, "The fish to collect the most points wins!", enter_scores},
     {ONEFISH, "The second, ehem, first trial is a test of TASTE. Show MERMAID what enhances your best qualities!. Collect the most SEASONING to win!", start_seasoning_minigame},
-    {ONEFISH, "Now, for the second and final trial to show  MERMAID that you can handle the HEAT! Stay on the HOT COALS for as long as you can to win!", start_coals_minigame},
+    {ONEFISH, "Now, for the second and final trial to show MERMAID that you can handle the HEAT! Stay on the HOT COALS for as you can, but not too long or you'll get burnt!", start_coals_minigame},
     {ONEFISH, "Wow, what a wonderful competition that was, and my, was it a close game!", NULL},
     {ONEFISH, "Without furthur ado, the winner is ...", goto_winner},
     {ONEFISH, "MERMAID, are you satisfied with your catch?", NULL},
